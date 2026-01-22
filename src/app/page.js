@@ -37,7 +37,7 @@ export default function Home() {
       <footer className="p-6 text-center text-gray-400 text-sm">
         <p>© 2026 Uyariy Health. All rights reserved.</p>
         <a
-          href="http://localhost:3000/admin"
+          href={`${process.env.NEXT_PUBLIC_API_URL}/admin`} target="_blank" rel="noopener noreferrer"
           className="text-xs text-gray-300 hover:text-blue-500 transition"
           >
           Staff / Doctor Portal Access

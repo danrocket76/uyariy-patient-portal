@@ -31,7 +31,7 @@ export default function LoginPage() {
           <span>
             Staff accounts must log in via the{' '}
             <a 
-              href="http://localhost:3000/users/sign_in" 
+              href={`${process.env.NEXT_PUBLIC_API_URL}/users/sign_in`} 
               className="underline font-bold hover:text-red-700"
             >
               Doctor Portal

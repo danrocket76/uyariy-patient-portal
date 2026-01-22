@@ -1,30 +1,35 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation'; // useSearchParams para leer URL
-
+import { useRouter, useSearchParams } from 'next/navigation';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import client from '../../../../lib/apolloClient';
 import Link from 'next/link';
 
-// 1. Query para llenar el selector de audífonos
-const GET_HEARING_AIDS = gql`
-  query GetHearingAids {
+// QUERY
+const GET_FORM_DATA = gql`
+  query GetFormData {
     hearingAids {
       id
       brand
       deviceModel
     }
+    audiograms {
+      id
+      date
+      diagnosis
+    }
   }
 `;
 
-// 2. Mutación para crear la cita
+// MUTATION
 const CREATE_APPOINTMENT = gql`
-  mutation CreateAppointment($date: ISO8601DateTime!, $reason: String!, $hearingAidId: ID) {
+  mutation CreateAppointment($date: ISO8601DateTime!, $reason: String!, $hearingAidId: ID, $audiogramId: ID) {
     createAppointment(input: {
       appointmentDate: $date,
       reason: $reason,
-      hearingAidId: $hearingAidId
+      hearingAidId: $hearingAidId,
+      audiogramId: $audiogramId
     }) {
       appointment {
         id
@@ -39,23 +44,25 @@ export default function NewAppointment() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // Si venimos de un botón "Probar este audífono", pre-seleccionamos el ID
+  // Pre-select Hearing Aid if coming from "Book Trial" button
   const preSelectedHearingAid = searchParams.get('hearingAidId');
 
   const [formData, setFormData] = useState({
     date: '',
     time: '',
     reason: 'General Checkup',
-    hearingAidId: preSelectedHearingAid || ''
+    hearingAidId: preSelectedHearingAid || '',
+    audiogramId: '' // <--- NEW STATE FOR AUDIOGRAM
   });
 
-  const { data: haData, loading: haLoading } = useQuery(GET_HEARING_AIDS, { client });
+  // Use the new combined query
+  const { data: formDataResult, loading: formLoading } = useQuery(GET_FORM_DATA, { client, fetchPolicy: 'network-only' });
   const [createAppt, { loading: submitting }] = useMutation(CREATE_APPOINTMENT, { client });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Combinar fecha y hora en formato ISO
+    // Combine date and time
     const isoDateTime = new Date(`${formData.date}T${formData.time}`).toISOString();
 
     try {
@@ -63,7 +70,8 @@ export default function NewAppointment() {
         variables: {
           date: isoDateTime,
           reason: formData.reason,
-          hearingAidId: formData.hearingAidId || null // Enviar null si está vacío
+          hearingAidId: formData.hearingAidId || null,
+          audiogramId: formData.audiogramId || null // <--- SENDING THE ID
         }
       });
 
@@ -71,7 +79,7 @@ export default function NewAppointment() {
         alert("Error: " + data.createAppointment.errors.join(", "));
       } else {
         alert("Appointment requested successfully!");
-        router.push('/dashboard'); // Volver al inicio
+        router.push('/dashboard');
       }
     } catch (err) {
       console.error(err);
@@ -89,7 +97,7 @@ export default function NewAppointment() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           
-          {/* FECHA Y HORA */}
+          {/* DATE & TIME */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Date</label>
@@ -111,7 +119,7 @@ export default function NewAppointment() {
             </div>
           </div>
 
-          {/* MOTIVO */}
+          {/* REASON */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Reason for Visit</label>
             <select 
@@ -126,7 +134,28 @@ export default function NewAppointment() {
             </select>
           </div>
 
-          {/* SELECTOR DE AUDÍFONOS (Interacción Módulos) */}
+          {/* --- NEW: AUDIOGRAM SELECTOR (The Master Solution Link) --- */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Attach Assessment Result (Optional)
+            </label>
+            <select 
+              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-700"
+              value={formData.audiogramId}
+              onChange={(e) => setFormData({...formData, audiogramId: e.target.value})}
+              disabled={formLoading}
+            >
+              <option value="">-- No specific assessment --</option>
+              {formDataResult && formDataResult.audiograms.map(audio => (
+                <option key={audio.id} value={audio.id}>
+                  {new Date(audio.date).toLocaleDateString()} - {audio.diagnosis}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-400 mt-1">Helps the doctor review your case before arrival.</p>
+          </div>
+
+          {/* HEARING AID SELECTOR */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Trial Device (Optional)
@@ -135,16 +164,16 @@ export default function NewAppointment() {
               className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-700"
               value={formData.hearingAidId}
               onChange={(e) => setFormData({...formData, hearingAidId: e.target.value})}
-              disabled={haLoading}
+              disabled={formLoading}
             >
               <option value="">-- No specific device --</option>
-              {haData && haData.hearingAids.map(ha => (
+              {formDataResult && formDataResult.hearingAids.map(ha => (
                 <option key={ha.id} value={ha.id}>
                   {ha.brand} - {ha.deviceModel}
                 </option>
               ))}
             </select>
-            {haLoading && <p className="text-xs text-blue-500 mt-1">Loading devices...</p>}
+            {formLoading && <p className="text-xs text-blue-500 mt-1">Loading data...</p>}
           </div>
 
           <button 

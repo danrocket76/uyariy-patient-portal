@@ -4,18 +4,18 @@
 
 :root {
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 245, 247, 250; /* Gris muy suave */
+  --background-start-rgb: 245, 247, 250; 
   --background-end-rgb: 255, 255, 255;
 }
 
 body {
-  color: #1f2937; /* Gris oscuro para texto */
+  color: #1f2937; 
   background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
     rgb(var(--background-start-rgb));
   min-height: 100vh;
 }
 
-/* Estilo para las tarjetas */
+
 .card-hover {
   transition: all 0.3s ease;
 }

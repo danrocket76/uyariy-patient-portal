@@ -7,9 +7,9 @@ import Link from 'next/link';
 
 export default function RegisterPage() {
   const router = useRouter();
-  // 1. Agregamos 'name' al estado inicial
+  
   const [formData, setFormData] = useState({ 
-    name: '',       // NUEVO
+    name: '',       
     email: '', 
     password: '', 
     password_confirmation: '' 
@@ -39,7 +39,7 @@ export default function RegisterPage() {
 
     } catch (err) {
       console.error(err);
-      // Mostramos el error exacto que devuelve Rails (ej: "Name can't be blank")
+      
       const msg = err.response?.data?.errors?.join(', ') || 'Registration failed.';
       setError(msg);
     } finally {
@@ -65,7 +65,7 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             
-            {/* 2. NUEVO CAMPO DE NOMBRE */}
+            {/* NEW FIELD NAME */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
               <input

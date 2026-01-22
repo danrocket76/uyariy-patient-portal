@@ -134,7 +134,7 @@ export default function AudiogramDetail() {
           </div>
         </div>
 
-        {/* NEW SECTION: RECOMMENDED HEARING AIDS */}
+        {/* RECOMMENDED HEARING AIDS */}
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
             ✅ Recommended Solutions
@@ -147,7 +147,7 @@ export default function AudiogramDetail() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {data.recommendations.map((rec) => {
-                // --- SAFETY CHECK (The Fix) ---
+                // --- SAFETY CHECK ---
                 // If hearingAid is null (deleted), we skip it to prevent crash
                 if (!rec.hearingAid) return null;
 

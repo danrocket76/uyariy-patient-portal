@@ -24,19 +24,28 @@ export default function LoginPage() {
       );
 
       const { token, user } = response.data;
-      
-      // Guardamos Token y Rol
+
+      // SECURITY BLOCK //
+      if (user.role === 'admin' || user.role === 'audiologist') {
+        setError(
+          <span>
+            Staff accounts must log in via the{' '}
+            <a 
+              href="http://localhost:3000/users/sign_in" 
+              className="underline font-bold hover:text-red-700"
+            >
+              Doctor Portal
+            </a>.
+          </span>
+        );
+        return;
+      }
+
+      // ONLY PATIENT //
       Cookies.set('token', token, { expires: 1 });
       Cookies.set('user_role', user.role, { expires: 1 });
-
-      // LÓGICA DE REDIRECCIÓN POR ROL
-      if (user.role === 'admin' || user.role === 'audiologist') {
-        // Si es Admin/Doctor, lo mandamos al Monolito Rails (Puerto 3000)
-        window.location.href = 'http://localhost:3000/admin';
-      } else {
-        // Si es Paciente, entra al Dashboard Moderno (Puerto 3001)
-        router.push('/dashboard');
-      }
+      
+      router.push('/dashboard');
 
     } catch (err) {
       console.error(err);
@@ -50,15 +59,15 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         
-        {/* Header Bonito */}
-        <div className="bg-blue-600 p-8 text-center">
+        {/* HEADER */}
+        <div className="bg-gray-800 p-8 text-center">
           <h1 className="text-3xl font-bold text-white tracking-tight">UYARIY</h1>
-          <p className="text-blue-100 mt-2 text-sm">Patient Portal Access</p>
+          <p className="text-gray-300 mt-2 text-sm">Patient Portal Access</p>
         </div>
 
         <div className="p-8 pt-10">
-          <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">Welcome Back</h2>
-          
+          <h2 className="text-xl font-semibold text-gray-800 text-center mb-6">Welcome Back</h2>
+
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center mb-6 border border-red-100">
               {error}
@@ -71,8 +80,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
-                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition"
-                placeholder="you@example.com"
+                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-800 focus:bg-white outline-none transition"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
@@ -83,8 +91,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
-                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition"
-                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-800 focus:bg-white outline-none transition"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
@@ -93,18 +100,16 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-blue-200 disabled:opacity-70 flex justify-center items-center"
+              className="w-full bg-gray-800 hover:bg-black text-white font-bold py-3 rounded-lg transition shadow-lg disabled:opacity-70 flex justify-center items-center"
             >
-              {loading ? (
-                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              ) : 'Sign In'}
+              {loading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
 
           <div className="mt-8 text-center">
             <p className="text-gray-500 text-sm">
               Do not have an account?{' '}
-              <Link href="/register" className="text-blue-600 font-semibold hover:underline">
+              <Link href="/register" className="text-gray-800 font-semibold hover:underline">
                 Create Account
               </Link>
             </p>

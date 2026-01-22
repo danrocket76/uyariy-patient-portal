@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import client from '../../../../lib/apolloClient';
@@ -40,7 +40,8 @@ const CREATE_APPOINTMENT = gql`
   }
 `;
 
-export default function NewAppointment() {
+// 1. INTERNAL COMPONENT: Contains the logic that uses useSearchParams
+function AppointmentFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -52,7 +53,7 @@ export default function NewAppointment() {
     time: '',
     reason: 'General Checkup',
     hearingAidId: preSelectedHearingAid || '',
-    audiogramId: '' // <--- NEW STATE FOR AUDIOGRAM
+    audiogramId: ''
   });
 
   // Use the new combined query
@@ -71,7 +72,7 @@ export default function NewAppointment() {
           date: isoDateTime,
           reason: formData.reason,
           hearingAidId: formData.hearingAidId || null,
-          audiogramId: formData.audiogramId || null // <--- SENDING THE ID
+          audiogramId: formData.audiogramId || null
         }
       });
 
@@ -134,7 +135,7 @@ export default function NewAppointment() {
             </select>
           </div>
 
-          {/* --- NEW: AUDIOGRAM SELECTOR (The Master Solution Link) --- */}
+          {/* AUDIOGRAM SELECTOR */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Attach Assessment Result (Optional)
@@ -186,5 +187,18 @@ export default function NewAppointment() {
         </form>
       </div>
     </div>
+  );
+}
+
+// 2. MAIN EXPORT: Wraps the content in Suspense to fix the build error
+export default function NewAppointmentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-gray-500 font-semibold animate-pulse">Loading booking form...</p>
+      </div>
+    }>
+      <AppointmentFormContent />
+    </Suspense>
   );
 }
